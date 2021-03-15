@@ -1,0 +1,296 @@
+# -*- coding: utf-8 -*-
+
+import tkinter as tk
+import tkinter.messagebox
+import pickle
+import time
+import datetime
+
+
+class User:
+    def __init__(self,name,my_message):
+        self.name=name
+        self.my_message=my_message
+
+user_list=[]#联系人列表
+message_list=[]#消息列表
+user_num=0#联系人数量
+user_message_list=[]#联系人对象列表
+current_user=''#当前对话对应联系人
+
+#窗口
+window=tk.Tk()
+window.title('欢迎进入学习系统')
+window.geometry('450x300')
+#画布放置图片
+#canvas=tk.Canvas(window,height=300,width=500)
+#imagefile=tk.PhotoImage(file='qm.png')
+#image=canvas.create_image(0,0,anchor='nw',image=imagefile)
+#canvas.pack(side='top')
+#标签 用户名密码
+tk.Label(window,text='用户名:').place(x=100,y=150)
+tk.Label(window,text='密码:').place(x=100,y=190)
+#用户名输入框
+var_usr_name=tk.StringVar()
+entry_usr_name=tk.Entry(window,textvariable=var_usr_name)
+entry_usr_name.place(x=160,y=150)
+#密码输入框
+var_usr_pwd=tk.StringVar()
+entry_usr_pwd=tk.Entry(window,textvariable=var_usr_pwd,show='*')
+entry_usr_pwd.place(x=160,y=190)
+
+    
+def cancelMsg():#取消信息
+    txtMsg.delete('0.0', tk.END)
+
+def sendMsg():#发送消息
+    strMsg = "我:" + time.strftime("%Y-%m-%d %H:%M:%S",time.localtime())+ '\n'#时间信息
+    txtMsgList.insert(tk.END, strMsg, 'greencolor')#将时间信息插入到消息列表中
+    txtMsgList.insert(tk.END, txtMsg.get('0.0', tk.END))#将聊天信息插入到消息列表中
+    txtMsg.delete('0.0', tk.END)
+        
+def receiveMsg(name):
+    pass
+
+def receiveFile():
+    pass
+
+def choose_user(name):
+    current_user=name#设置当前对话窗口的联系人
+    txtMsgList.delete('0.0', tk.END)
+    txtMsgList.insert(tk.END,'This is the window of '+name+'\n')
+    for i in user_message_list:
+        if(i.name==name):
+            print("I find "+name)
+            #print(i.my_message[0])
+            #print(i.my_message[1])
+            for t in i.my_message:
+                strMsg=name+":"+t['time']+"\n"#时间信息
+                txtMsgList.insert(tk.END, strMsg,'greencolor')
+                txtMsgList.insert(tk.END, t['data']+"\n")
+            #strMsg=name+":"+i.my_message[0]+"\n"#时间信息
+            #txtMsgList.insert(tk.END, strMsg,'greencolor')
+            #strMsg=name+":"+i.my_message[1]+"\n"#时间信息
+            #txtMsgList.insert(tk.END, strMsg,'greencolor')
+            #txtMsgList.insert(tk.END, i.message[1]['data']+"\n")
+            
+            
+            
+    
+def talk():
+    user_list=getUserList()
+    for x in user_list:
+        message_dict={}#创建单个消息字典
+        l=[]#单个联系人消息列表
+        #user_num+=1#联系人数量+1
+        print(x['username'])
+        fs = open(x['username']+'.txt',mode='r+')
+        line1=fs.readline()
+        line2=fs.readline()
+        while(line1):
+            #print(line)
+            #message_dict['time']=line
+            #line2=fs.readline()
+            #print(line)
+            #message_dict['data']=line
+            #line=fs.readline()
+            l.append({'time':line1,'data':line2})
+            line1=fs.readline()
+            line2=fs.readline()
+            #print(message_dict)
+            #print(message_dict['time']+message_dict['data'])
+        #print(l[0])
+        #print(l[1])
+        auser=User(x['username'],l)
+        user_message_list.append(auser)
+        fs.close()
+        #print(auser.my_message[0])
+        #print(auser.my_message[1])
+    #上述代码的作用在于从缓存的旧信息的txt读出来
+        
+    message_list=getMessage()
+    for message in message_list:
+        if(message['srcUsername']==current_user):
+            for x in user_message_list:
+                if(x.name==message['srcUsername']):
+                    x.my_message.append({'time':message['time'],'data':message['data']})#向联系人对象列表中对应的对象的消息列表添加消息
+            #txtMsgList.insert(tk.END,current_user+': '+message['time']+"\n",'greencolor')
+            #txtMsgList.insert(tk.END,message['data']+"\n")
+        else:
+            for x in user_message_list:
+                if(x.name==message['srcUsername']):
+                    x.my_message.append({'time':message['time'],'data':message['data']})#向联系人对象列表中对应的对象的消息列表添加消息
+        
+    
+        
+    
+    def sendMsgEvent(event):#发送消息事件
+        if event.keysym =='Up':
+            sendMsg()
+    #创建窗口
+    app = tk.Tk()
+    app.title('与python聊天')
+
+    #创建frame容器
+    frmLT = tk.Frame(width = 500, height = 320, bg = 'white')
+    frmLC = tk.Frame(width = 500, height = 150, bg = 'white')
+    frmLB = tk.Frame(width = 500, height = 30)
+    frmRT = tk.Frame(width = 50, height = 500)
+
+    #创建控件
+    global txtMsgList
+    txtMsgList = tk.Text(frmLT)
+    txtMsgList.tag_config('greencolor',foreground = '#008C00')#创建tag
+    global txtMsg
+    txtMsg = tk.Text(frmLC)
+    txtMsg.bind("<KeyPress-Up>", sendMsgEvent)
+    btnSend = tk.Button(frmLB, text = '发送', width = 8, command = sendMsg)
+    btnCancel =tk.Button(frmLB, text = '取消', width = 8, command = cancelMsg)
+    #imgInfo = tk.PhotoImage(file = "2.gif")
+    #lblImage = tk.Label(frmRT, image = imgInfo)
+    #lblImage.image = imgInfo
+    
+    #bb1 = tk.Label(frmRT,text='The fisrt')
+    l=[]
+    for i in user_list:
+        l.append(tk.Button(frmRT,text=i['username'],command=lambda arg=i['username']:choose_user(arg)))
+        
+        
+
+    #窗口布局
+    frmLT.grid(row = 0, column = 0, columnspan = 2, padx = 1, pady = 3)
+    frmLC.grid(row = 1, column = 0, columnspan = 2, padx = 1, pady = 3)
+    frmLB.grid(row = 2, column = 0, columnspan = 2)
+    frmRT.grid(row = 0, column = 2, rowspan = 3, padx =2, pady = 3)
+
+    #固定大小
+    frmLT.grid_propagate(0)
+    frmLC.grid_propagate(0)
+    frmLB.grid_propagate(0)
+    frmRT.grid_propagate(0)
+
+    btnSend.grid(row = 2, column = 0)
+    btnCancel.grid(row = 2, column = 1)
+    #lblImage.grid()
+    txtMsgList.grid()
+    txtMsg.grid()
+    for user_button in l:
+        user_button.grid()
+
+    #主事件循环
+    app.mainloop()
+    
+    
+    
+    
+    
+def signIn(username,password):
+    if(username!='While'):
+        return 3
+    else:
+        if(password=='pass'):
+            return 1
+        else:
+            return 4
+        
+        
+def getUserList():
+    l=[{'username':'zcy','online':True},{'username':'jmh','online':False}]
+    return l
+    
+    
+    
+def getMessage():
+    l=[{'srcUsername':'jmh','data':'王沛然是我爷爷','time':'2019-12-22 18:30:20'},
+       {'srcUsername':'zcy','data':'王沛然是我祖爷爷','time':'2019-12-22 18:31:22'}]
+    return l
+    
+    
+    
+
+#登录函数
+def usr_log_in():
+    #输入框获取用户名密码
+    usr_name=var_usr_name.get()
+    usr_pwd=var_usr_pwd.get()
+    #从本地字典获取用户信息，如果没有则新建本地数据库
+
+    #判断用户名和密码是否匹配
+    if (signIn(usr_name,usr_pwd)==1):
+        tk.messagebox.showinfo(title='welcome',message='欢迎您：'+usr_name)
+        window.destroy()
+        talk()
+    elif(signIn(usr_name,usr_pwd)==4):
+        tk.messagebox.showerror(message='密码错误')
+    #用户名密码不能为空
+    elif usr_name=='' or usr_pwd=='' :
+        tk.messagebox.showerror(message='用户名或密码为空')
+    #不在数据库中弹出是否注册的框
+    else:
+        is_signup=tk.messagebox.askyesno('欢迎','您还没有注册，是否现在注册')
+        if is_signup:
+            usr_sign_up()
+#注册函数
+def usr_sign_up():
+    #确认注册时的相应函数
+    def signtowcg():
+        #获取输入框内的内容
+        nn=new_name.get()
+        np=new_pwd.get()
+        npf=new_pwd_confirm.get()
+ 
+        #本地加载已有用户信息,如果没有则已有用户信息为空
+        #try:
+        #    with open('usr_info.pickle','rb') as usr_file:
+        #        exist_usr_info=pickle.load(usr_file)
+        #except FileNotFoundError:
+        #    exist_usr_info={}           
+            
+        #检查用户名存在、密码为空、密码前后不一致
+        if nn in exist_usr_info:
+            tk.messagebox.showerror('错误','用户名已存在')
+        elif np =='' or nn=='':
+            tk.messagebox.showerror('错误','用户名或密码为空')
+        elif np !=npf:
+            tk.messagebox.showerror('错误','密码前后不一致')
+        #注册信息没有问题则将用户名密码写入数据库
+        else:
+            exist_usr_info[nn]=np
+            with open('usr_info.pickle','wb') as usr_file:
+                pickle.dump(exist_usr_info,usr_file)
+            tk.messagebox.showinfo('欢迎','注册成功')
+            #注册成功关闭注册框
+            window_sign_up.destroy()
+    #新建注册界面
+    window_sign_up=tk.Toplevel(window)
+    window_sign_up.geometry('350x200')
+    window_sign_up.title('注册')
+    #用户名变量及标签、输入框
+    new_name=tk.StringVar()
+    tk.Label(window_sign_up,text='用户名：').place(x=10,y=10)
+    tk.Entry(window_sign_up,textvariable=new_name).place(x=150,y=10)
+    #密码变量及标签、输入框
+    new_pwd=tk.StringVar()
+    tk.Label(window_sign_up,text='请输入密码：').place(x=10,y=50)
+    tk.Entry(window_sign_up,textvariable=new_pwd,show='*').place(x=150,y=50)    
+    #重复密码变量及标签、输入框
+    new_pwd_confirm=tk.StringVar()
+    tk.Label(window_sign_up,text='请再次输入密码：').place(x=10,y=90)
+    tk.Entry(window_sign_up,textvariable=new_pwd_confirm,show='*').place(x=150,y=90)    
+    #确认注册按钮及位置
+    bt_confirm_sign_up=tk.Button(window_sign_up,text='确认注册',
+                                 command=signtowcg)
+    bt_confirm_sign_up.place(x=150,y=130)
+#退出的函数
+def usr_sign_quit():
+    window.destroy()
+
+#登录 注册按钮
+bt_login=tk.Button(window,text='登录',command=usr_log_in)
+bt_login.place(x=140,y=230)
+bt_logup=tk.Button(window,text='注册',command=usr_sign_up)
+bt_logup.place(x=210,y=230)
+bt_logquit=tk.Button(window,text='退出',command=usr_sign_quit)
+bt_logquit.place(x=280,y=230)
+#主循环
+window.mainloop()
